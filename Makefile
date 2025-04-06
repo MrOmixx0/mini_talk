@@ -4,9 +4,9 @@ FLAGS = -Wall -Werror -Wextra
 
 NAME = minitalk
 
-CLIENT = client
+NAME_1 = client
 
-SERVER = server
+NAME_2 = server
 
 
 
@@ -41,13 +41,13 @@ INC_FLAGS =	-Iinclude -Ilibft/include/
 
 all: $(NAME)
 
-$(NAME): $(CLIENT) $(SERVER)
+$(NAME): $(NAME_1) $(NAME_2)
 
-$(CLIENT): $(OBJ_PATH)/client.o $(LIB)
-	$(CC) $(FLAGS) $(OBJ_PATH)/client.o $(LIB) -o $(CLIENT)
+$(NAME_1): $(OBJ_PATH)/client.o $(LIB)
+	$(CC) $(FLAGS) $(OBJ_PATH)/client.o $(LIB) -o $(NAME_1)
 
-$(SERVER): $(OBJ_PATH)/server.o $(LIB)
-	$(CC) $(FLAGS) $(OBJ_PATH)/server.o $(LIB) -o $(SERVER)
+$(NAME_2): $(OBJ_PATH)/server.o $(LIB)
+	$(CC) $(FLAGS) $(OBJ_PATH)/server.o $(LIB) -o $(NAME_2)
 
 $(LIB):
 	$(MAKE) -C $(LIB_PATH)
@@ -63,7 +63,7 @@ clean:
 	rm -rf $(OBJ_PATH)
 
 fclean: clean
-	rm -f $(CLIENT) $(SERVER)
+	rm -f $(NAME_1) $(NAME_2)
 
 re: fclean all
 

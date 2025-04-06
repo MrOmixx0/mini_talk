@@ -6,64 +6,91 @@
 /*   By: mel-hajj <mel-hajj@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/26 02:36:39 by mel-hajj          #+#    #+#             */
-/*   Updated: 2025/03/26 03:30:14 by mel-hajj         ###   ########.fr       */
+/*   Updated: 2025/04/06 11:19:08 by mel-hajj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-void	send_bit(int pid, int bit)
+static int	g_ack_received = 0;
+
+void	wait_ack(int sig)
 {
-	if (bit == 0)
-		kill(pid, SIGUSR1);
-	else
-		kill(pid, SIGUSR2);
-	usleep(100);
+	if (sig == SIGUSR1)
+		g_ack_received = 1;
 }
 
-void	send_char(int pid, unsigned char c)
+void	send_bit(int server_pid, int bit)
 {
-	int		i;
-	int		bit;
+	if (bit == 0)
+	{
+		if (kill(server_pid, SIGUSR1) == -1)
+		{
+			ft_printf("Error: Failed to send SIGUSR1 to %d\n", server_pid);
+			exit(1);
+		}
+	}
+	else
+	{
+		if (kill(server_pid, SIGUSR2) == -1)
+		{
+			ft_printf("Error: Failed to send SIGUSR2 to %d\n", server_pid);
+			exit(1);
+		}
+	}
+	while (!g_ack_received)
+	{
+		if (kill(server_pid, 0) == -1)
+		{
+			ft_printf("Error: Server stopped running\n");
+			exit(1);
+		}
+	}
+	g_ack_received = 0;
+}
+
+void	send_char(int server_pid, unsigned char c)
+{
+	int	i;
+	int	bit;
 
 	i = 7;
 	while (i >= 0)
 	{
 		bit = (c >> i) & 1;
-		send_bit(pid, bit);
+		send_bit(server_pid, bit);
 		i--;
 	}
 }
 
-void	send_string(int pid, char *str)
+void	send_string(int server_pid, char *str)
 {
-	int		i;
+	int	i;
 
 	i = 0;
 	while (str[i] != '\0')
 	{
-		send_char(pid, str[i]);
+		send_char(server_pid, str[i]);
 		i++;
 	}
-	send_char(pid, '\0');
-	send_char(pid, '\n');
 }
 
 int	main(int argc, char **argv)
 {
-	int		pid;
+	int	server_pid;
 
+	signal(SIGUSR1, wait_ack);
 	if (argc != 3)
 	{
 		ft_printf("Usage: ./client <pid> <string>\n");
 		return (1);
 	}
-	pid = ft_atoi(argv[1]);
-	if (pid <= 0)
+	server_pid = ft_atoi(argv[1]);
+	if (server_pid <= 0)
 	{
 		ft_printf("Invalid PID\n");
 		return (1);
 	}
-	send_string(pid, argv[2]);
+	send_string(server_pid, argv[2]);
 	return (0);
 }
